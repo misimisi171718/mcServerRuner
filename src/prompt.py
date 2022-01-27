@@ -2,6 +2,7 @@ from typing import List,TypeVar
 import config as cfg
 import logging as log
 import sys
+import pathlib as pl
 
 T = TypeVar("T")
 def _prompt(prompt:str,options: List[T])->T:
@@ -25,8 +26,8 @@ def minecrftVesrsion()->str:
 	version = [version+"."+str(x) for x in list(range(patchVersion[minor]+1))]
 	return _prompt("select your patch vesion", version)
 
-def serverJarFile()->str:
-	jarfiles = list(cfg.serverFolder.glob("*.jar"))
+def serverJarFile( path:pl.Path)->str:
+	jarfiles = list(path.glob("*.jar"))
 	if len(jarfiles) == 0:
 		log.error("no jar file in server folder")
 		sys.exit()
@@ -39,3 +40,13 @@ def serverJarFile()->str:
 
 def javaVetsion()->str:
 	return _prompt("java version not selected avalible options are", list(cfg.javaPaths.keys()))
+
+def serverPaths():
+	path="x"
+	ret = []
+	print("enter the paths where the servers are located")
+	print("thes folders will be searched for servers")
+	while path != "":
+		path = input("enter a path: ")
+		ret.append(path)
+	return ret
