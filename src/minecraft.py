@@ -47,7 +47,7 @@ def listServers() -> None:
 		for prop,string in zip(properties,separatorText):
 			try:
 				out += server.getProp(prop)
-			except:
+			except KeyError:
 				out += "unkown"
 			out += string
 		print(out)

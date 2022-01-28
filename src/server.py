@@ -39,11 +39,15 @@ class Server:
 			time.sleep(1)
 	
 	def online(self) -> bool:
-		try:
-			out = subp.check_output(["screen", "-ls"])
-		except subp.CalledProcessError as e:
-			out = e.output
-		return "minecraft_"+self.name in str(out)
+		"""
+		use /proc/net/tcp to get active network connections
+		and search for the port of the server in the file
+		more information on the file format see here
+		https://metacpan.org/pod/Linux::Proc::Net::TCP
+		"""
+		with open("/proc/net/tcp") as file:
+			text = file.read()
+			return "00000000:"+hex(int(self.properties()["server-port"])) in text
 
 	def version(self) -> str:
 		try:
@@ -119,7 +123,7 @@ class Server:
 		elif name == "java-version":
 			return self.javaVersion()
 		elif name == "online":
-			return self.online()
+			return str(self.online())
 		elif name == "name":
 			return self.name
 		else:
