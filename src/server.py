@@ -126,5 +126,7 @@ class Server:
 			return str(self.online())
 		elif name == "name":
 			return self.name
+		elif name == "path":
+			return self.path
 		else:
 			return self.properties()[name]
