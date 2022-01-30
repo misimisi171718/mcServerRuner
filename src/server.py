@@ -96,7 +96,7 @@ class Server:
 
 	def _loadConfig(self) -> None:
 		data = cfg.load(self.path/"config.json",[
-			("javaVersion", prompt.javaVetsion),
+			("javaVersion", lambda : str(prompt.javaVetsion())),
 			("jarName"    , lambda : prompt.serverJarFile(self.path)),
 			("gameVersion", prompt.minecrftVesrsion),
 		])
