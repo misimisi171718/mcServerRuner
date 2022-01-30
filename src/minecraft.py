@@ -2,7 +2,7 @@ import logging as log
 from itertools import chain
 import time,sys,re
 import config as cfg
-from server import Server,ServerNotFount
+from server import Server,ServerNotFount,ServerFailedToStart
 from help import help
 
 def listServers() -> None:
@@ -86,8 +86,12 @@ def main():
 				debug = (sys.argv[3].lower() == "debug")
 			except IndexError:
 				debug = False
-			s.start(debug)
-			log.info("starting server...")
+			log.info("starting server")
+			try:
+				s.start(debug)
+				log.info("server started")
+			except ServerFailedToStart:
+				log.error("server failed to start")
 
 if __name__ == "__main__":
 	main()

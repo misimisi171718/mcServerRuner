@@ -7,6 +7,7 @@ import prompt
 import os
 
 class NoServerPropertiesFile(Exception): ...
+class ServerFailedToStart(Exception): ...
 class ServerNotFount(Exception): ...
 
 class Server:
@@ -32,10 +33,14 @@ class Server:
 		args += self._log4ShellFixArg()
 		args += ["-jar", self.jarFile(), "nogui"]
 		subp.run(args,cwd=self.path)
+		while not self.online():
+			if not self.runing():
+				raise ServerFailedToStart(f"{self.name}")
+			time.sleep(1)
 
 	def stop(self) -> None:
 		self.sendCommand("stop")
-		while self.online():
+		while self.runing():
 			time.sleep(1)
 	
 	def online(self) -> bool:
@@ -47,7 +52,13 @@ class Server:
 		"""
 		with open("/proc/net/tcp") as file:
 			text = file.read()
-			return "00000000:"+hex(int(self.properties()["server-port"])) in text
+			return "00000000:"+hex(int(self.properties()["server-port"]))[2:].upper() in text
+
+	def runing(self) -> bool:
+		for x in os.listdir("/run/screen/S-"+os.environ["USER"]):
+			if self.name in x:
+				return True
+		return False
 
 	def version(self) -> str:
 		try:
