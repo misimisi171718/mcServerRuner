@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict,List
 import subprocess as subp
 import config as cfg
@@ -23,6 +24,7 @@ class Server:
 			raise ServerNotFount(f"no server named {name}") from None
 
 	def start(self,debug:bool) -> None:
+		self.backup()
 		args = []
 		if not debug:
 			args += ["screen", "-S"]
@@ -141,3 +143,13 @@ class Server:
 			return self.path
 		else:
 			return self.properties()[name]
+	
+	def backup(self) -> None:
+		if self.online():
+			self.sendCommand("save-off")
+			self.sendCommand("save-all flush")
+		#TODO: wait for the server to flush (not as a static wait time)
+		timestr = datetime.now().strftime("%d-%m-%Y_%H:%M:%S")
+		subp.run(["borg", "create", f"{cfg.borgRepoPath}::{self.name}-{timestr}", self.path])
+		if self.online():
+			self.sendCommand("save-on")

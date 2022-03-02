@@ -1,16 +1,22 @@
 import logging as log
 from itertools import chain
 import time,sys,re
+from typing import List
 import config as cfg
 from server import Server,ServerNotFount,ServerFailedToStart
 from help import help
 
-def listServers() -> None:
-	servers:list[Server] = []
+#TODO: make this a class method?
+def getServerNames() -> List[str]:
+	ret = []
 	for temp in  chain(*[list(folder.glob("*")) for folder in cfg.serverFolders]):
 		if not temp.is_dir():
 			continue
-		servers.append(Server(temp.parts[-1]))
+		ret.append(temp.parts[-1])
+	return ret
+
+def listServers() -> None:
+	servers:List[Server] = map(Server,getServerNames())
 	
 	filterRe = dict([ x.split("=") for x in sys.argv[2].split(",") ])
 	try:
@@ -55,16 +61,23 @@ def listServers() -> None:
 
 def main():
 	cfg.init()
-	if len(sys.argv) < 3:
+	if len(sys.argv) < 2:
 		help()
 	
-	if sys.argv[1].lower() not in ["start","stop","restart","info"]:
+	if sys.argv[1].lower() not in ["start","stop","restart","info","archive"]:
 		help()
 
 	action = sys.argv[1].lower()
 
 	if action == "info":
 		listServers()
+	elif action == "archive" and len(sys.argv) == 2:
+		for i in getServerNames():
+			s = Server(i)
+			if(s.online()):
+				log.info(f"starting backup for {i}")
+				s.backup()
+				log.info(f"backup finished for {i}")
 	else:
 		try:
 			s = Server(sys.argv[2])
@@ -92,6 +105,10 @@ def main():
 				log.info("server started")
 			except ServerFailedToStart:
 				log.error("server failed to start")
+		if action == "archive":
+			log.info("starting backup")
+			s.backup()
+			log.info("backup finished")
 
 if __name__ == "__main__":
 	main()

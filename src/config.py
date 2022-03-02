@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Callable, Dict, List, Tuple
 import logging as log
 import pathlib as pl
@@ -7,8 +6,11 @@ import json, signal, sys, prompt
 javaPaths: Dict[str,str] = {}
 javaArgs: List[str] = []
 serverFolders: List[pl.Path] = []
+borgRepoPath: pl.Path = ""
 
 assets:pl.Path = pl.Path.home()/".local/share/minecraft/assets"
+
+#TODO: add borg prune and compat some where may be at the start of the program?
 
 def load(fileName:pl.Path,variabels:List[Tuple[str,Callable]])->List:
 	if not fileName.is_file():
@@ -20,7 +22,7 @@ def load(fileName:pl.Path,variabels:List[Tuple[str,Callable]])->List:
 		try:
 			data = json.loads(file.read())
 		except json.decoder.JSONDecodeError as e:
-			log.error("failed to load server config file")
+			log.error(f"failed to load config file {fileName}")
 			log.error(e)
 			sys.exit()
 		ret = []
@@ -44,14 +46,17 @@ def _loadGlobalConfig():
 	global javaPaths
 	global javaArgs
 	global serverFolders
+	global borgRepoPath
 	data = load(pl.Path.home()/".config/minecraftRuner.json",[
 		("javaPaths"  ,lambda:{ x.parts[-1]: str(x) for x in list(pl.Path("/usr/lib/jvm").glob("*"))}),
 		("javaArgs"   ,lambda:["-Xms:2G","-XmX:4G"]),
 		("serverPaths",prompt.serverPaths),
+		("borgPath"   ,prompt.borgPath),
 	])
 	javaPaths     = data[0]
 	javaArgs      = data[1]
 	serverFolders = [pl.Path(x) for x in data[2]]
+	borgRepoPath  = pl.Path(data[3])
 
 
 def init(): 

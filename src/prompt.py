@@ -1,8 +1,10 @@
 from typing import List,TypeVar
+
 import config as cfg
 import logging as log
 import sys
 import pathlib as pl
+import subprocess as subp
 
 T = TypeVar("T")
 def _prompt(prompt:str,options: List[T])->T:
@@ -46,7 +48,20 @@ def serverPaths():
 	ret = []
 	print("enter the paths where the servers are located")
 	print("thes folders will be searched for servers")
-	while path != "":
+	while path != "":	
 		path = input("enter a path: ")
-		ret.append(path)
+		if pl.Path(path).is_dir():
+			ret.append(path)
+		else:
+			print("path dosent exist")
 	return ret
+
+def borgPath() -> str:
+	path = "x"
+	while not pl.Path(path).is_dir():
+		print("enter an exiting path wer the borg repository will be stored for archiveing")
+		path = input()
+	
+	subp.run(["borg", "init", "-e", "none", path])
+
+	return path
