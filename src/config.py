@@ -8,7 +8,8 @@ javaArgs: List[str] = []
 serverFolders: List[pl.Path] = []
 borgRepoPath: pl.Path = ""
 
-assets:pl.Path = pl.Path.home()/".local/share/minecraft/assets"
+APP_NAME:str = "mcServerManager"
+ASSETS:pl.Path = pl.Path.home()/f".local/share/{APP_NAME}/assets"
 
 #TODO: add borg prune and compat some where may be at the start of the program?
 
@@ -47,7 +48,7 @@ def _loadGlobalConfig():
 	global javaArgs
 	global serverFolders
 	global borgRepoPath
-	data = load(pl.Path.home()/".config/minecraftRuner.json",[
+	data = load(pl.Path.home()/f".config/{APP_NAME}.json",[
 		("javaPaths"  ,lambda:{ x.parts[-1]: str(x) for x in list(pl.Path("/usr/lib/jvm").glob("*"))}),
 		("javaArgs"   ,lambda:["-Xms:2G","-XmX:4G"]),
 		("serverPaths",prompt.serverPaths),

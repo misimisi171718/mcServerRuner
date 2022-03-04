@@ -1,11 +1,11 @@
 from datetime import datetime
+from functools import cache
 from typing import Dict,List
 import subprocess as subp
 import config as cfg
-import time
 from builtins import Exception
-import prompt
-import os
+from itertools import chain
+import time, prompt, os
 
 class NoServerPropertiesFile(Exception): ...
 class ServerFailedToStart(Exception): ...
@@ -123,9 +123,9 @@ class Server:
 		if minor == 17:
 			ret.append("-Dlog4j2.formatMsgNoLookups=true")
 		elif 12 <= minor <= 16:
-			ret.append("-Dlog4j.configurationFile="+str(cfg.assets/"log4j2_112-116.xml"))
+			ret.append("-Dlog4j.configurationFile="+str(cfg.ASSETS/"log4j2_112-116.xml"))
 		elif 7 <= minor <= 11:
-			ret.append("-Dlog4j.configurationFile="+str(cfg.assets/"log4j2_17-111.xml"))
+			ret.append("-Dlog4j.configurationFile="+str(cfg.ASSETS/"log4j2_17-111.xml"))
 		return ret
 
 	def getProp(self,name:str)->str:
@@ -153,3 +153,13 @@ class Server:
 		subp.run(["borg", "create", f"{cfg.borgRepoPath}::{self.name}-{timestr}", self.path])
 		if self.online():
 			self.sendCommand("save-on")
+	
+	@classmethod
+	@cache
+	def getServerNames() -> List[str]:
+		ret = []
+		for temp in  chain(*[list(folder.glob("*")) for folder in cfg.serverFolders]):
+			if not temp.is_dir():
+				continue
+			ret.append(temp.parts[-1])
+		return ret

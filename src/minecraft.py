@@ -1,27 +1,17 @@
 import logging as log
-from itertools import chain
 import time,sys,re
 from typing import List
 import config as cfg
 from server import Server,ServerNotFount,ServerFailedToStart
 from help import help
 
-#TODO: make this a class method?
-def getServerNames() -> List[str]:
-	ret = []
-	for temp in  chain(*[list(folder.glob("*")) for folder in cfg.serverFolders]):
-		if not temp.is_dir():
-			continue
-		ret.append(temp.parts[-1])
-	return ret
-
 def listServers() -> None:
-	servers:List[Server] = map(Server,getServerNames())
+	servers:List[Server] = map(Server,Server.getServerNames())
 	
 	filterRe = dict([ x.split("=") for x in sys.argv[2].split(",") ])
 	try:
 		parts = sys.argv[3]
-	except:
+	except IndexError:
 		parts = "%{name} %{server-port}"
 	parts = parts.split("%")
 	first = parts[0]
@@ -72,12 +62,13 @@ def main():
 	if action == "info":
 		listServers()
 	elif action == "archive" and len(sys.argv) == 2:
-		for i in getServerNames():
+		for i in Server.getServerNames():
 			s = Server(i)
 			if(s.online()):
-				log.info(f"starting backup for {i}")
-				s.backup()
-				log.info(f"backup finished for {i}")
+				continue
+			log.info(f"starting backup for {i}")
+			s.backup()
+			log.info(f"backup finished for {i}")
 	else:
 		try:
 			s = Server(sys.argv[2])
@@ -88,7 +79,7 @@ def main():
 		if action in ["stop","restart"]:
 			log.info("stoping server")
 			s.stop()
-			while s.online():
+			while s.runing():
 				time.sleep(1)
 			log.info("server has stoped")
 		if action in ["start","restart"]:
