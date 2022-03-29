@@ -62,31 +62,25 @@ class Server:
 				return True
 		return False
 
+	@property
 	def version(self) -> str:
-		try:
-			return self.mVersion
-		except AttributeError:
-			self._loadConfig()
-			return self.mVersion
+		self._loadConfig()
+		return self.mVersion
 
+	@property
 	def javaVersion(self) -> str:
-		try:
-			return self.mJavaVersion
-		except AttributeError:
-			self._loadConfig()
-			return self.mJavaVersion
+		self._loadConfig()
+		return self.mJavaVersion
 
+	@property
 	def jarFile(self) -> str:
-		try:
-			return self.mJarFile
-		except AttributeError:
-			self._loadConfig()
-			return self.mJarFile
+		self._loadConfig()
+		return self.mJarFile
 
+	@property
+	@cache
 	def properties(self) -> Dict[str,str]:
 		try:
-			return self.mProperties
-		except AttributeError:
 			with open(self.path/"server.properties") as file:
 				text = file.read()
 				ret = {}
@@ -95,8 +89,7 @@ class Server:
 						continue
 					varName, value = x.split("=")
 					ret[varName] = value
-				self.mProperties = ret
-			return self.mProperties
+			return ret 
 		except FileNotFoundError as e:
 			raise NoServerPropertiesFile(f"server.properties file is not avalible for {self.name}") from e
 
@@ -106,7 +99,7 @@ class Server:
 			"minecraft_"+self.name, 
 			"-X", "stuff", cmd+"\n"])
 
-
+	@cache
 	def _loadConfig(self) -> None:
 		data = cfg.load(self.path/"config.json",[
 			("javaVersion", lambda : str(prompt.javaVetsion())),
@@ -130,11 +123,11 @@ class Server:
 
 	def getProp(self,name:str)->str:
 		if name == "version":
-			return self.version()
+			return self.version
 		elif name == "jar-file":
-			return self.jarFile()
+			return self.jarFile
 		elif name == "java-version":
-			return self.javaVersion()
+			return self.javaVersion
 		elif name == "online":
 			return str(self.online())
 		elif name == "name":
@@ -142,7 +135,7 @@ class Server:
 		elif name == "path":
 			return self.path
 		else:
-			return self.properties()[name]
+			return self.properties[name]
 	
 	def backup(self) -> None:
 		if self.online():
